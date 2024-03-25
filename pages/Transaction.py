@@ -1,37 +1,64 @@
 import streamlit as st
-import time
-import numpy as np
-import pandas as pd
 
-from wirpl_books.models.transaction import TransactionModel
 
-st.set_page_config(page_title="Transactions", page_icon="📈")
+def main():
+    st.title("Transaction Page")
 
-st.markdown("# Transactions")
-st.sidebar.header("Transactions")
-st.write(
-    """Manage Transactions"""
-)
+    # Sample product data
+    products = [
+        {"name": "Smart TV 55", "price": 8500000,
+            "image": "https://picsum.photos/150?random=1"},
+        {"name": "Laptop - Core i7", "price": 15000000,
+            "image": "https://picsum.photos/150?random=2"},
+        {"name": "Smartphone - X10", "price": 7200000,
+            "image": "https://picsum.photos/150?random=3"}
+    ]
 
-customer_model = TransactionModel()
+    # Sample shipping options
+    shipping_options = {
+        "FastShip": 8000,
+        "SwiftDelivery": 7000,
+        "QuickShip": 6000,
+        "RapidTransit": 5500,
+        "ExpressShip": 6500
+    }
 
-with st.container():
-    st.write("## Select Transactions")
-    df = pd.DataFrame(customer_model.get_all(), columns=customer_model.COLUMN_NAMES)
-    st.write(df)
+    # Cart list
+    st.header("Cart")
 
-    if st.button("Refresh"):
-        st.rerun()
+    for idx, product in enumerate(products):
+        col1, col2, col3 = st.columns([1, 2, 1])
+        amount = col3.number_input(
+            label="", min_value=0, step=1, key=f"amount_{idx}")
+        col1.image(product['image'], width=150)
+        col2.write(f"**Product Name:** {product['name']}\n"
+                   f"**Price:** Rp {product['price']}\n")
+        col3.write(f"**Amount:** {amount}")
 
-with st.container():
-    st.write("## Add Transaction")
-    id = st.slider("ID", min_value=0, max_value=1000, step=1)
-    total_price = st.text_input("Total Price")
-    payment_method = st.text_input("Payment Method")
-    created_at = st.text_input("Created At")
-    status = st.text_input("Status")
-    customer_id = st.number_input("Customer ID", min_value=0, max_value=1000, step=1)
+    # Calculate subtotal
+    total_price = sum(
+        product['price'] * st.session_state[f"amount_{idx}"] for idx, product in enumerate(products))
 
-    if st.button("Add"):
-        customer_model.insert(id, total_price, payment_method, created_at, status, customer_id)
-        st.success("Transaction added")
+    st.write(f"**Subtotal:** Rp {total_price}")
+
+    # Shipping option
+    st.header("Shipping")
+    selected_shipping = st.selectbox(
+        "Select Shipping Option", list(shipping_options.keys()))
+    shipping_fee = shipping_options[selected_shipping]
+    st.write(f"**Selected Shipping:** {selected_shipping}")
+    st.write(f"**Shipping Fee:** Rp {shipping_fee}")
+
+    # Total purchase
+    total_purchase = total_price + shipping_fee
+    st.write(f"**Total Purchase:** Rp {total_purchase}")
+
+    # Checkout button
+    if st.button("Checkout"):
+        payment_option = st.radio("Select Payment Option", [
+                                  "Credit Card", "Bank Transfer", "E-Wallet"])
+        st.write(f"Selected Payment Option: {payment_option}")
+
+
+if __name__ == "__main__":
+    main()

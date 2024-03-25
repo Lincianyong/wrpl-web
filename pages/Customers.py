@@ -1,44 +1,52 @@
 import streamlit as st
-import time
-import numpy as np
 import pandas as pd
 
-from wirpl_books.models.customer import CustomerModel
 
-st.set_page_config(page_title="Customers", page_icon="📈")
+def main():
+    # Load transaction data
+    transaction_data = {
+        "transactionDate": ["2024-03-20", "2024-03-20", "2024-03-21", "2024-03-21", "2024-03-22", "2024-03-22",
+                            "2024-03-23", "2024-03-23", "2024-03-24", "2024-03-24", "2024-03-25", "2024-03-25",
+                            "2024-03-26", "2024-03-26", "2024-03-27"],
+        "transactionStatus": ["Completed", "Pending", "Completed", "Pending", "Completed", "Completed",
+                              "Pending", "Completed", "Pending", "Completed", "Pending", "Completed",
+                              "Pending", "Completed", "Pending"],
+        "transactionPrice": [8500000, 15000000, 7200000, 1500000, 6000000, 12500000, 3000000, 800000, 10000000,
+                             9500000, 12000000, 3800000, 9000000, 2200000, 1200000],
+        "customerID": ["C001", "C002", "C003", "C004", "C005", "C006", "C007", "C008", "C009", "C010",
+                       "C011", "C012", "C013", "C014", "C015"],
+        "shippingID": ["S001", "S002", "S003", "S004", "S005", "S001", "S002", "S003", "S004", "S005",
+                       "S001", "S002", "S003", "S004", "S005"]
+    }
+    df_transactions = pd.DataFrame(transaction_data)
 
-st.markdown("# Customers")
-st.sidebar.header("Customers")
-st.write(
-    """Manage customers"""
-)
+    # Customer details
+    customer_name = "John Doe"
+    customer_address = "123 Main Street"
 
-customer_model = CustomerModel()
+    # Display customer page
+    st.title("Customer Page")
 
-with st.container():
-    st.write("## Select customers")
-    df = pd.DataFrame(customer_model.get_all(), columns=customer_model.COLUMN_NAMES)
-    st.write(df)
+    # Circular image
+    st.image(f"https://picsum.photos/150?random=1",
+             use_column_width=True, output_format="JPEG", width=100)  # Adjust width here
+    st.markdown(
+        f"<h2 style='font-size: 2rem;'>{customer_name}</h2>", unsafe_allow_html=True)
+    st.write(customer_address)
 
-    if st.button("Refresh"):
-        st.rerun()
+    # Add space between customer profile and purchased items
+    st.empty()
 
-with st.container():
-    st.write("## Add customer")
-    id = st.slider("ID", min_value=0, max_value=1000, step=1)
-    name = st.text_input("Name")
-    address = st.text_input("Address")
-    email = st.text_input("Email")
-    gender = st.selectbox("Gender", ("male", "female"))
+    st.write("### Purchased Items")
+    for index, transaction in df_transactions.iterrows():
+        if transaction['customerID'] == 'C001':
+            product_name = "Smart TV 55"
+            st.write(f"**Product Name:** {product_name}\n"
+                     f"**Transaction Date:** {transaction['transactionDate']}\n"
+                     f"**Transaction Status:** {transaction['transactionStatus']}\n"
+                     f"**Transaction Price:** ${transaction['transactionPrice']/100:.2f}\n"
+                     f"**Shipping ID:** {transaction['shippingID']}\n")
 
-    if st.button("Add"):
-        customer_model.insert(id, name, address, email, gender)
-        st.success("Customer added")
 
-with st.container():
-    st.write("## Delete customer")
-    id = st.number_input("ID", min_value=0, max_value=1000, step=1)
-    if st.button("Delete"):
-        customer_model.delete(id)
-        st.success("Customer deleted")
-        st.rerun()
+if __name__ == "__main__":
+    main()
