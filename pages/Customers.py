@@ -1,52 +1,126 @@
 import streamlit as st
 import pandas as pd
 
+# Sample product data
+products_data = {
+    'productID': ['P00-001', 'P00-002', 'P00-003', 'P00-004', 'P00-005', 'P00-006', 'P00-007', 'P00-008', 'P00-009', 'P00-010',
+                  'P00-011', 'P00-012', 'P00-013', 'P00-014', 'P00-015', 'P00-016', 'P00-017', 'P00-018', 'P00-019', 'P00-020'],
+    'name': ['Smart TV 55"', 'Laptop - Core i7', 'Smartphone - X10', 'Wireless Headphones', 'Gaming Console', 'Drone - Pro',
+             'Smart Watch', 'Bluetooth Speaker', 'DSLR Camera', 'Tablet - iPad Air', 'Desktop PC', 'VR Headset',
+             'Home Theater System', 'Action Camera', 'Wireless Router', 'Smart Thermostat', 'E-book Reader',
+             'Portable Projector', 'Fitness Tracker', 'Wireless Earbuds'],
+    'price': [8500000, 15000000, 7200000, 1500000, 6000000, 12500000, 3000000, 800000, 10000000, 9500000,
+              12000000, 3800000, 9000000, 2200000, 1200000, 1700000, 900000, 4500000, 750000, 1200000]
+}
 
-def main():
-    # Load transaction data
-    transaction_data = {
-        "transactionDate": ["2024-03-20", "2024-03-20", "2024-03-21", "2024-03-21", "2024-03-22", "2024-03-22",
-                            "2024-03-23", "2024-03-23", "2024-03-24", "2024-03-24", "2024-03-25", "2024-03-25",
-                            "2024-03-26", "2024-03-26", "2024-03-27"],
-        "transactionStatus": ["Completed", "Pending", "Completed", "Pending", "Completed", "Completed",
-                              "Pending", "Completed", "Pending", "Completed", "Pending", "Completed",
-                              "Pending", "Completed", "Pending"],
-        "transactionPrice": [8500000, 15000000, 7200000, 1500000, 6000000, 12500000, 3000000, 800000, 10000000,
-                             9500000, 12000000, 3800000, 9000000, 2200000, 1200000],
-        "customerID": ["C001", "C002", "C003", "C004", "C005", "C006", "C007", "C008", "C009", "C010",
-                       "C011", "C012", "C013", "C014", "C015"],
-        "shippingID": ["S001", "S002", "S003", "S004", "S005", "S001", "S002", "S003", "S004", "S005",
-                       "S001", "S002", "S003", "S004", "S005"]
-    }
-    df_transactions = pd.DataFrame(transaction_data)
+# Sample shipping data
+shipping_data = {
+    'shippingID': ['S001', 'S002', 'S003', 'S004', 'S005'],
+    'companyName': ['FastShip', 'SwiftDelivery', 'QuickShip', 'RapidTransit', 'ExpressShip'],
+    'fee': [8000, 7000, 6000, 5500, 6500]
+}
 
-    # Customer details
-    customer_name = "John Doe"
-    customer_address = "123 Main Street"
+# Create DataFrames
+products_df = pd.DataFrame(products_data)
+shipping_df = pd.DataFrame(shipping_data)
 
-    # Display customer page
-    st.title("Customer Page")
+# Initialize quantities dictionary
+if 'quantities' not in st.session_state:
+    st.session_state.quantities = {
+        product_id: 0 for product_id in products_df['productID']}
 
-    # Circular image
-    st.image(f"https://picsum.photos/150?random=1",
-             use_column_width=True, output_format="JPEG", width=100)  # Adjust width here
-    st.markdown(
-        f"<h2 style='font-size: 2rem;'>{customer_name}</h2>", unsafe_allow_html=True)
-    st.write(customer_address)
+# Page title
+st.title('Online Shop - Cart Page')
 
-    # Add space between customer profile and purchased items
-    st.empty()
+# Customer details
+customer_name = st.text_input("Customer Name")
+customer_address = st.text_input("Customer Address")
 
-    st.write("### Purchased Items")
-    for index, transaction in df_transactions.iterrows():
-        if transaction['customerID'] == 'C001':
-            product_name = "Smart TV 55"
-            st.write(f"**Product Name:** {product_name}\n"
-                     f"**Transaction Date:** {transaction['transactionDate']}\n"
-                     f"**Transaction Status:** {transaction['transactionStatus']}\n"
-                     f"**Transaction Price:** ${transaction['transactionPrice']/100:.2f}\n"
-                     f"**Shipping ID:** {transaction['shippingID']}\n")
+# Function to update quantity
 
 
-if __name__ == "__main__":
-    main()
+def update_quantity(product_id, action):
+    if action == 'Add':
+        st.session_state.quantities[product_id] += 1
+    elif action == 'Remove' and st.session_state.quantities[product_id] > 0:
+        st.session_state.quantities[product_id] -= 1
+
+
+# Search box for products
+search_term = st.text_input("Search Product")
+
+# Display products
+for index, row in products_df.iterrows():
+    if search_term.lower() == '' or search_term.lower() in row['name'].lower():
+        col1, col2 = st.columns([2, 1])
+        with col1:
+            st.write(f"**{row['name']}** - ${row['price']}")
+        with col2:
+            quantity = st.session_state.quantities[row['productID']]
+            if st.button('Add', key=f'add_{row["productID"]}'):
+                update_quantity(row['productID'], 'Add')
+            st.write(f"Quantity: {quantity}")
+            if st.button('Remove', key=f'remove_{row["productID"]}'):
+                update_quantity(row['productID'], 'Remove')
+
+# Display shipping options
+st.title('Shipping Options')
+shipping_option = st.selectbox(
+    "Select Shipping Company", options=shipping_df['companyName'])
+
+# Display total price before shipping
+total_price_before_shipping = sum(st.session_state.quantities[product_id] * products_df.loc[products_df['productID']
+                                                                                            == product_id, 'price'].iloc[0] if products_df.loc[products_df['productID'] == product_id].shape[0] > 0 else 0
+                                  for product_id in st.session_state.quantities)
+st.write(
+    f"**Total Price (before shipping fee)**: ${total_price_before_shipping}")
+
+# Display total price after adding shipping fee
+shipping_fee = shipping_df.loc[shipping_df['companyName']
+                               == shipping_option, 'fee'].iloc[0]
+total_price_after_shipping = total_price_before_shipping + shipping_fee
+st.write(
+    f"**Total Price (including shipping fee)**: ${total_price_after_shipping}")
+
+# Display customer details
+st.write("**Customer Details**")
+st.write(f"Name: {customer_name}")
+st.write(f"Address: {customer_address}")
+
+# Finalize purchase button
+if st.button('Finalize Purchase'):
+    # Get selected products
+    selected_products = [(products_df.loc[products_df['productID'] == product_id, 'name'].iloc[0],
+                         st.session_state.quantities[product_id])
+                         for product_id in st.session_state.quantities
+                         if st.session_state.quantities[product_id] > 0]
+
+    # Create DataFrame for purchase details
+    purchase_details_df = pd.DataFrame(
+        selected_products, columns=['Product', 'Quantity'])
+
+    # Add columns for Total Price for each product
+    purchase_details_df['Total Price'] = purchase_details_df['Quantity'] * products_df.loc[
+        products_df['name'].isin(purchase_details_df['Product']), 'price'].values
+
+    # Calculate total price before shipping
+    total_price_before_shipping = purchase_details_df['Total Price'].sum()
+
+    # Display purchase details in a table
+    st.write("**Purchase Details**")
+    st.write(f"Customer Name: {customer_name}")
+    st.write(f"Customer Address: {customer_address}")
+    st.write("Products Purchased:")
+    st.write(purchase_details_df)
+
+    # Display total price before shipping
+    st.write(f"Total Price (before shipping): ${total_price_before_shipping}")
+
+    # Display shipping information
+    st.write(f"Shipping Company: {shipping_option}")
+    st.write(f"Shipping Fee: ${shipping_fee}")
+
+    # Calculate total price after shipping
+    total_price_after_shipping = total_price_before_shipping + shipping_fee
+    st.write(
+        f"Total Price (including shipping): ${total_price_after_shipping}")
