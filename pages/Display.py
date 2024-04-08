@@ -20,7 +20,7 @@ def display_tables():
     st.title("Database Tables")
 
     # Create a sidebar for table selection
-    table_name = st.sidebar.selectbox("Select a Table", ["customers", "products", "shippings", "transactions"])
+    table_name = st.sidebar.selectbox("Select a Table", ["customers", "products", "shippings", "transactions", "transaction_items"])
 
     try:
         conn = get_connection()
