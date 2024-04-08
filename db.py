@@ -1,5 +1,5 @@
 import streamlit as st
-from pages import signup_page, create_product_page, login_page, delete_page, update_transaction_page, create_transaction
+import signup_page, create_product_page, login_page, delete_page, update_transaction_page, create_transaction
 
 host = "localhost"
 user = "root"
