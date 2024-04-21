@@ -1,5 +1,5 @@
 # signup_page.py
-import streamlit as st
+import streamlistrt as st
 import mysql.connector
 
 # Database connection details

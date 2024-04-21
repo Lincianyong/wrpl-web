@@ -4,6 +4,7 @@ import mysql.connector
 
 host = "localhost"
 user = "root"
+port = "3007"
 password = "RINNEA098123/#"
 database = "ecommerce"
 
@@ -11,6 +12,7 @@ def get_connection():
     return mysql.connector.connect(
         host=host,
         user=user,
+        port=port,
         password=password,
         database=database
     )
